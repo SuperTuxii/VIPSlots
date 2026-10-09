@@ -58,4 +58,53 @@ public class VipSlotsData extends SavedData {
         if (level == null) return new VipSlotsData();
         return level.getDataStorage().computeIfAbsent(TYPE);
     }
+
+    public static RuleData.Rule getRule(MinecraftServer server) {
+        return RuleData.getData(server).getRule();
+    }
+
+    public static class RuleData extends SavedData {
+        private static final Codec<RuleData> CODEC = Codec.STRING.xmap(
+                RuleData::new,
+                RuleData::getRuleString
+        );
+        private static final SavedDataType<RuleData> TYPE = new SavedDataType<>(
+                Identifier.fromNamespaceAndPath(Vipslots.MOD_ID, "vip_slots_rule"),
+                RuleData::new,
+                CODEC,
+                DataFixTypes.LEVEL
+        );
+
+        public enum Rule {
+            TOTAL,
+            JOIN
+        }
+
+        private Rule rule = Rule.TOTAL;
+
+        public RuleData() {}
+
+        public RuleData(String rule) {
+            this.rule = Rule.valueOf(rule.toUpperCase());
+        }
+
+        public String getRuleString() {
+            return rule.toString();
+        }
+
+        public Rule getRule() {
+            return rule;
+        }
+
+        public void setRule(String rule) {
+            this.rule = Rule.valueOf(rule.toUpperCase());
+            setDirty();
+        }
+
+        public static RuleData getData(MinecraftServer server) {
+            ServerLevel level = server.getLevel(ServerLevel.OVERWORLD);
+            if (level == null) return new RuleData();
+            return level.getDataStorage().computeIfAbsent(TYPE);
+        }
+    }
 }

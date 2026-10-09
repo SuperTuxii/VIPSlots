@@ -16,6 +16,14 @@ public abstract class DedicatedPlayerListMixin {
 
     @ModifyReturnValue(method = "canBypassPlayerLimit", at = @At("RETURN"))
     private boolean checkVipBypass(boolean original, NameAndId nameAndId) {
-        return original || VipSlotsData.getData(getServer()).isVip(nameAndId);
+        VipSlotsData vipSlotsData = VipSlotsData.getData(getServer());
+        if (original || vipSlotsData.isVip(nameAndId))
+            return true;
+        if (VipSlotsData.getRule(getServer()) != VipSlotsData.RuleData.Rule.TOTAL)
+            return false;
+        int maxPlayers = getServer().getPlayerList().getMaxPlayers();
+        int currentPlayers = (int) (getServer().getPlayerList().getPlayerCount() - getServer().getPlayerList().getPlayers()
+                        .stream().filter(player -> vipSlotsData.isVip(player.nameAndId())).count());
+        return currentPlayers < maxPlayers;
     }
 }
